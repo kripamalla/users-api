@@ -1,14 +1,62 @@
+
 import { Router } from 'express';
-import { UsersController } from '../controllers/users.controller.js';
+import {
+  requirePermission,
+  requireRole,
+} from '../middleware/authorize.js';
 import { validateBody } from '../middleware/validate-body.js';
-import { createUserSchema, updateUserSchema } from '../validators/user.schema.js';
+import { validateIdParam } from '../middleware/validate-id.js';
+import { changeRoleSchema } from '../validators/auth.schema.js';
+import {
+  createUserSchema,
+  updateUserSchema,
+} from '../validators/user.schema.js';
 
-const controller = new UsersController();
+export function createUsersRouter({ usersController: c, authenticate }) {
+  const router = Router();
 
-export const usersRouter = Router();
+  // Every /users endpoint requires a valid access token.
+  router.use(authenticate);
+  router.param('id', validateIdParam);
 
-usersRouter.get('/', controller.list);
-usersRouter.get('/:id', controller.getById);
-usersRouter.post('/', validateBody(createUserSchema), controller.create);
-usersRouter.patch('/:id', validateBody(updateUserSchema, { partial: true }), controller.update);
-usersRouter.delete('/:id', controller.remove);
+  router.get(
+    '/',
+    requireRole('admin'),
+    c.list,
+  );
+
+  router.post(
+    '/',
+    requireRole('admin'),
+    validateBody(createUserSchema),
+    c.create,
+  );
+
+  router.get(
+    '/:id',
+    requirePermission('users:read'),
+    c.getById,
+  );
+
+  router.patch(
+    '/:id',
+    requirePermission('users:update'),
+    validateBody(updateUserSchema, { partial: true }),
+    c.update,
+  );
+
+  router.patch(
+    '/:id/role',
+    requireRole('admin'),
+    validateBody(changeRoleSchema),
+    c.changeRole,
+  );
+
+  router.delete(
+    '/:id',
+    requirePermission('users:delete'),
+    c.remove,
+  );
+
+  return router;
+}

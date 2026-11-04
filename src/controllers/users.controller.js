@@ -1,12 +1,9 @@
-import { UsersRepository } from '../repositories/users.repository.js';
-import { UsersService } from '../services/users.service.js';
+
 import { pageLinks } from '../utils/query.js';
 
-// The controller creates its own service (and the service's repository) — no container.
-// Methods are ARROW FUNCTIONS so `this` still works when Express calls them as plain callbacks.
 export class UsersController {
-  constructor() {
-    this.usersService = new UsersService(new UsersRepository());
+  constructor(usersService) {
+    this.usersService = usersService;
   }
 
   list = async (req, res) => {
@@ -15,16 +12,33 @@ export class UsersController {
   };
 
   getById = async (req, res) => {
-    res.json({ data: await this.usersService.getById(req.params.id) });
+    res.json({
+      data: await this.usersService.getById(req.params.id),
+    });
   };
 
   create = async (req, res) => {
     const user = await this.usersService.create(req.body);
-    res.status(201).location(`${req.baseUrl}/${user.id}`).json({ data: user });
+
+    res.status(201)
+      .location(`${req.baseUrl}/${user.id}`)
+      .json({ data: user });
   };
 
   update = async (req, res) => {
-    res.json({ data: await this.usersService.update(req.params.id, req.body) });
+    res.json({
+      data: await this.usersService.update(req.params.id, req.body),
+    });
+  };
+
+  // Admin only: PATCH /users/:id/role
+  changeRole = async (req, res) => {
+    res.json({
+      data: await this.usersService.changeRole(
+        req.params.id,
+        req.body.role,
+      ),
+    });
   };
 
   remove = async (req, res) => {
