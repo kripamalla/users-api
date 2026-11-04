@@ -1,20 +1,106 @@
-import { email, lowercase, object, password, pastDate, phone, string, trim } from './rules.js';
 
-const addressShape = {
-  street:     { required: true,  check: string({ max: 120 }) },
-  city:       { required: true,  check: string({ max: 80 }) },
-  postalCode: { required: false, check: string({ max: 20 }) },
-  country:    { required: true,  check: string({ max: 80 }) },
+import {
+  email,
+  lowercase,
+  optionalString,
+  password,
+  pastDate,
+  phone,
+  string,
+} from './rules.js';
+
+export const createUserSchema = {
+  firstName: {
+    required: true,
+    check: string({ min: 1, max: 80 }),
+    transform: (value) => value.trim(),
+  },
+
+  lastName: {
+    required: true,
+    check: string({ min: 1, max: 80 }),
+    transform: (value) => value.trim(),
+  },
+
+  email: {
+    required: true,
+    check: email(),
+    transform: lowercase,
+  },
+
+  password: {
+    required: true,
+    check: password(),
+  },
+
+  phone: {
+    check: optionalString({ max: 30 }),
+    transform: (value) =>
+      value === undefined || value === null || value === ''
+        ? null
+        : value.trim(),
+  },
+
+  dateOfBirth: {
+    check: (value) =>
+      value === undefined || value === null || value === ''
+        ? null
+        : pastDate()(value),
+    transform: (value) =>
+      value === undefined || value === null || value === ''
+        ? null
+        : value,
+  },
+
+  address: {
+    check: optionalString({ max: 200 }),
+    transform: (value) =>
+      value === undefined || value === null || value === ''
+        ? null
+        : value.trim(),
+  },
 };
 
-// NOTE: "role" is deliberately NOT here. Clients must never choose their own role.
-// New users are always "customer"; Topic 2.3 adds an admin-only endpoint to change roles.
-export const createUserSchema = {
-  firstName:   { required: true,  check: string({ max: 50 }), transform: trim },
-  lastName:    { required: true,  check: string({ max: 50 }), transform: trim },
-  email:       { required: true,  check: email(),             transform: lowercase },
-  password:    { required: true,  check: password() },
-  phone:       { required: false, check: phone(),             transform: trim },
-  dateOfBirth: { required: false, check: pastDate() },
-  address:     { required: false, check: object(addressShape) },
+export const updateUserSchema = {
+  firstName: {
+    check: string({ min: 1, max: 80 }),
+    transform: (value) => value.trim(),
+  },
+
+  lastName: {
+    check: string({ min: 1, max: 80 }),
+    transform: (value) => value.trim(),
+  },
+
+  email: {
+    check: email(),
+    transform: lowercase,
+  },
+
+  phone: {
+    check: optionalString({ max: 30 }),
+    transform: (value) =>
+      value === undefined || value === null || value === ''
+        ? null
+        : value.trim(),
+  },
+
+  dateOfBirth: {
+    check: (value) =>
+      value === undefined || value === null || value === ''
+        ? null
+        : pastDate()(value),
+    transform: (value) =>
+      value === undefined || value === null || value === ''
+        ? null
+        : value,
+  },
+
+  address: {
+    check: optionalString({ max: 200 }),
+    transform: (value) =>
+      value === undefined || value === null || value === ''
+        ? null
+        : value.trim(),
+  },
 };

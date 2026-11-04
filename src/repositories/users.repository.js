@@ -1,15 +1,15 @@
-import { InMemoryRepository } from "./in-memory.repository.js";
+import { InMemoryRepository } from './in-memory.repository.js';
 
 export class UsersRepository extends InMemoryRepository {
-  async findByEmail(email) {
+  findByEmail(email) {
     const normalizedEmail = email.toLowerCase();
 
-    const users = await this.findAll();
-
-    return (
-      users.find(
-        (user) => user.email.toLowerCase() === normalizedEmail,
-      ) ?? null
+    return this.findOne(
+      (user) => user.email.toLowerCase() === normalizedEmail,
     );
+  }
+
+  findByGithubId(githubId) {
+    return this.findOne((user) => user.githubId === githubId);
   }
 }
